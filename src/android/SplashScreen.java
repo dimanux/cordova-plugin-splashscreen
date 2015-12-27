@@ -19,6 +19,7 @@
 
 package org.apache.cordova.splashscreen;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -26,10 +27,19 @@ import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Handler;
+import android.os.Build;
+import android.view.ActionMode;
+import android.view.ActionMode.Callback;
 import android.view.Display;
+import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.view.Window;
 import android.view.WindowManager;
+import android.view.accessibility.AccessibilityEvent;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
@@ -69,6 +79,194 @@ public class SplashScreen extends CordovaPlugin {
 
     @Override
     protected void pluginInitialize() {
+		cordova.getActivity().runOnUiThread(new Runnable()
+		{
+			@Override
+			public void run() 
+			{
+				try
+				{
+					final Activity activity = cordova.getActivity();
+					final Window window = activity.getWindow();
+					final View decorView = window.getDecorView();
+					activity.getWindow().getDecorView().setOnFocusChangeListener(null); 
+					activity.getWindow().getDecorView().setOnSystemUiVisibilityChangeListener(null);
+					activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+					final int uiOptions = ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) ?
+						View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+						:
+						View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_LOW_PROFILE
+						);
+					window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+					decorView.setSystemUiVisibility(uiOptions);
+					decorView.setOnFocusChangeListener(new View.OnFocusChangeListener() 
+					{
+						@Override
+						public void onFocusChange(View v, boolean hasFocus) 
+						{
+							if (hasFocus)
+							{
+								decorView.setSystemUiVisibility(uiOptions);
+							}
+						}
+					});
+					decorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
+					{
+						@Override
+						public void onSystemUiVisibilityChange(int visibility) 
+						{
+							decorView.setSystemUiVisibility(uiOptions);
+						}
+					});					
+					final Window.Callback windowCallback = window.getCallback();
+					window.setCallback(new Window.Callback()
+					{
+						@Override
+						public ActionMode onWindowStartingActionMode(Callback callback) 
+						{
+							return windowCallback.onWindowStartingActionMode(callback);
+						}
+						
+						@Override
+						public void onWindowFocusChanged(boolean hasFocus) 
+						{
+							if (hasFocus)
+							{
+								decorView.setSystemUiVisibility(uiOptions);
+							}
+							
+							windowCallback.onWindowFocusChanged(hasFocus);
+						}
+						
+						@Override
+						public void onWindowAttributesChanged(WindowManager.LayoutParams attrs) 
+						{
+							windowCallback.onWindowAttributesChanged(attrs);
+						}
+						
+						@Override
+						public boolean onSearchRequested() 
+						{
+							return windowCallback.onSearchRequested();
+						}
+						
+						@Override
+						public boolean onPreparePanel(int featureId, View view, Menu menu) 
+						{
+							return windowCallback.onPreparePanel(featureId, view, menu);
+						}
+						
+						@Override
+						public void onPanelClosed(int featureId, Menu menu)
+						{
+							windowCallback.onPanelClosed(featureId, menu);
+						}
+						
+						@Override
+						public boolean onMenuOpened(int featureId, Menu menu) 
+						{
+							return windowCallback.onMenuOpened(featureId, menu);
+						}
+						
+						@Override
+						public boolean onMenuItemSelected(int featureId, MenuItem item) 
+						{
+							return windowCallback.onMenuItemSelected(featureId, item);
+						}
+						
+						@Override
+						public void onDetachedFromWindow() 
+						{
+							windowCallback.onDetachedFromWindow();
+						}
+						
+						@Override
+						public View onCreatePanelView(int featureId) 
+						{
+							return windowCallback.onCreatePanelView(featureId);
+						}
+						
+						@Override
+						public boolean onCreatePanelMenu(int featureId, Menu menu) 
+						{
+							return windowCallback.onCreatePanelMenu(featureId, menu);
+						}
+						
+						@Override
+						public void onContentChanged()
+						{
+							windowCallback.onContentChanged();
+						}
+						
+						@Override
+						public void onAttachedToWindow() 
+						{
+							windowCallback.onAttachedToWindow();
+						}
+						
+						@Override
+						public void onActionModeStarted(ActionMode mode)
+						{
+							windowCallback.onActionModeStarted(mode);
+						}
+						
+						@Override
+						public void onActionModeFinished(ActionMode mode) 
+						{
+							windowCallback.onActionModeFinished(mode);
+						}
+						
+						@Override
+						public boolean dispatchTrackballEvent(MotionEvent event) 
+						{
+							return windowCallback.dispatchTrackballEvent(event);
+						}
+						
+						@Override
+						public boolean dispatchTouchEvent(MotionEvent event) 
+						{
+							return windowCallback.dispatchTouchEvent(event);
+						}
+						
+						@Override
+						public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) 
+						{
+							return windowCallback.dispatchPopulateAccessibilityEvent(event);
+						}
+						
+						@Override
+						public boolean dispatchKeyShortcutEvent(KeyEvent event) 
+						{
+							return windowCallback.dispatchKeyShortcutEvent(event);
+						}
+						
+						@Override
+						public boolean dispatchKeyEvent(KeyEvent event) 
+						{
+							return windowCallback.dispatchKeyEvent(event);
+						}
+						
+						@Override
+						public boolean dispatchGenericMotionEvent(MotionEvent event) 
+						{
+							return windowCallback.dispatchGenericMotionEvent(event);
+						}
+					});
+				}
+				catch (Exception e)
+				{
+				}
+			}
+		});
+		
         if (HAS_BUILT_IN_SPLASH_SCREEN || !firstShow) {
             return;
         }
@@ -250,12 +448,180 @@ public class SplashScreen extends CordovaPlugin {
 
                 // Create and show the dialog
                 splashDialog = new Dialog(context, android.R.style.Theme_Translucent_NoTitleBar);
-                // check to see if the splash screen should be full screen
-                if ((cordova.getActivity().getWindow().getAttributes().flags & WindowManager.LayoutParams.FLAG_FULLSCREEN)
-                        == WindowManager.LayoutParams.FLAG_FULLSCREEN) {
-                    splashDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                            WindowManager.LayoutParams.FLAG_FULLSCREEN);
-                }
+				final Window splashWindow = splashDialog.getWindow();
+				final View splashDecorView = splashWindow.getDecorView();
+				splashDecorView.setOnFocusChangeListener(null); 
+				splashDecorView.setOnSystemUiVisibilityChangeListener(null);
+				splashWindow.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+				final int uiOptions = ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) ?
+					View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+					| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+					| View.SYSTEM_UI_FLAG_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+					:
+					View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+					| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_FULLSCREEN
+					| View.SYSTEM_UI_FLAG_LOW_PROFILE
+					);
+				splashWindow.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				splashDecorView.setSystemUiVisibility(uiOptions);
+				splashDecorView.setOnFocusChangeListener(new View.OnFocusChangeListener() 
+				{
+					@Override
+					public void onFocusChange(View v, boolean hasFocus) 
+					{
+						if (hasFocus)
+						{
+							splashDecorView.setSystemUiVisibility(uiOptions);
+						}
+					}
+				});
+				splashDecorView.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener()
+				{
+					@Override
+					public void onSystemUiVisibilityChange(int visibility) 
+					{
+						splashDecorView.setSystemUiVisibility(uiOptions);
+					}
+				});					
+				final Window.Callback windowCallback = splashWindow.getCallback();
+				splashWindow.setCallback(new Window.Callback()
+				{
+					@Override
+					public ActionMode onWindowStartingActionMode(Callback callback) 
+					{
+						return windowCallback.onWindowStartingActionMode(callback);
+					}
+					
+					@Override
+					public void onWindowFocusChanged(boolean hasFocus) 
+					{
+						if (hasFocus)
+						{
+							splashDecorView.setSystemUiVisibility(uiOptions);
+						}
+						
+						windowCallback.onWindowFocusChanged(hasFocus);
+					}
+					
+					@Override
+					public void onWindowAttributesChanged(WindowManager.LayoutParams attrs) 
+					{
+						windowCallback.onWindowAttributesChanged(attrs);
+					}
+					
+					@Override
+					public boolean onSearchRequested() 
+					{
+						return windowCallback.onSearchRequested();
+					}
+					
+					@Override
+					public boolean onPreparePanel(int featureId, View view, Menu menu) 
+					{
+						return windowCallback.onPreparePanel(featureId, view, menu);
+					}
+					
+					@Override
+					public void onPanelClosed(int featureId, Menu menu)
+					{
+						windowCallback.onPanelClosed(featureId, menu);
+					}
+					
+					@Override
+					public boolean onMenuOpened(int featureId, Menu menu) 
+					{
+						return windowCallback.onMenuOpened(featureId, menu);
+					}
+					
+					@Override
+					public boolean onMenuItemSelected(int featureId, MenuItem item) 
+					{
+						return windowCallback.onMenuItemSelected(featureId, item);
+					}
+					
+					@Override
+					public void onDetachedFromWindow() 
+					{
+						windowCallback.onDetachedFromWindow();
+					}
+					
+					@Override
+					public View onCreatePanelView(int featureId) 
+					{
+						return windowCallback.onCreatePanelView(featureId);
+					}
+					
+					@Override
+					public boolean onCreatePanelMenu(int featureId, Menu menu) 
+					{
+						return windowCallback.onCreatePanelMenu(featureId, menu);
+					}
+					
+					@Override
+					public void onContentChanged()
+					{
+						windowCallback.onContentChanged();
+					}
+					
+					@Override
+					public void onAttachedToWindow() 
+					{
+						windowCallback.onAttachedToWindow();
+					}
+					
+					@Override
+					public void onActionModeStarted(ActionMode mode)
+					{
+						windowCallback.onActionModeStarted(mode);
+					}
+					
+					@Override
+					public void onActionModeFinished(ActionMode mode) 
+					{
+						windowCallback.onActionModeFinished(mode);
+					}
+					
+					@Override
+					public boolean dispatchTrackballEvent(MotionEvent event) 
+					{
+						return windowCallback.dispatchTrackballEvent(event);
+					}
+					
+					@Override
+					public boolean dispatchTouchEvent(MotionEvent event) 
+					{
+						return windowCallback.dispatchTouchEvent(event);
+					}
+					
+					@Override
+					public boolean dispatchPopulateAccessibilityEvent(AccessibilityEvent event) 
+					{
+						return windowCallback.dispatchPopulateAccessibilityEvent(event);
+					}
+					
+					@Override
+					public boolean dispatchKeyShortcutEvent(KeyEvent event) 
+					{
+						return windowCallback.dispatchKeyShortcutEvent(event);
+					}
+					
+					@Override
+					public boolean dispatchKeyEvent(KeyEvent event) 
+					{
+						return windowCallback.dispatchKeyEvent(event);
+					}
+					
+					@Override
+					public boolean dispatchGenericMotionEvent(MotionEvent event) 
+					{
+						return windowCallback.dispatchGenericMotionEvent(event);
+					}
+				});
+                
                 splashDialog.setContentView(splashImageView);
                 splashDialog.setCancelable(false);
                 splashDialog.show();
